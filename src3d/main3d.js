@@ -1,17 +1,17 @@
 // 3D 入口：精简 UI（转盘/红包墙 + 音量开关 + 惩罚ban开关），多分辨率自适应
 // 复用 useAudio / usePrng / useWasm / useGlFx / useConfig / 结果弹窗
-import './styles/main.css';
+import '../styles/main.css';
 import './styles3d/app3d.css';
 import * as THREE from 'three';
-import { initScene, is3dAvailable, showGroup, addUpdater, resize3d, getCamera, set3dLowPerf } from './src3d/Scene.js';
-import { createWheel3D } from './src3d/Wheel3D.js';
-import { createWall3D } from './src3d/Wall3D.js';
-import { createPrizeResultModal } from './components/PrizeResultModal.js';
-import { createConfig } from './composables/useConfig.js';
-import { freshSeed, seedText, createPrng } from './composables/usePrng.js';
-import { sfx, setAudioEnabled, initAudio } from './composables/useAudio.js';
-import { initFx, startAmbient, winFx, resize as fxResize } from './composables/useGlFx.js';
-import { initWasm } from './composables/useWasm.js';
+import { initScene, is3dAvailable, showGroup, addUpdater, resize3d, getCamera, set3dLowPerf } from './Scene.js';
+import { createWheel3D } from './Wheel3D.js';
+import { createWall3D } from './Wall3D.js';
+import { createPrizeResultModal } from '../components/PrizeResultModal.js';
+import { createConfig } from '../composables/useConfig.js';
+import { freshSeed, seedText, createPrng } from '../composables/usePrng.js';
+import { sfx, setAudioEnabled, initAudio } from '../composables/useAudio.js';
+import { initFx, startAmbient, winFx, resize as fxResize } from '../composables/useGlFx.js';
+import { initWasm } from '../composables/useWasm.js';
 
 const appRoot = document.getElementById('app');
 
