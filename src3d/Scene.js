@@ -64,7 +64,7 @@ export function initScene(low = false) {
   rim.position.set(-6, 5, -8);
   scene.add(rim);
 
-  resize();
+  onResize();
   addEventListener('resize', onResize);
   start();
   return api;
