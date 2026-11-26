@@ -243,14 +243,14 @@ export function createWheel3D(ctx) {
       const wob = Math.sin(p * Math.PI * 3) * (1 - p) * .18;
       cam().position.set(
         camShake ? (Math.random() - .5) * camShake : 0,
-        3.2 + (1 - e) * 6 + wob,
-        9 - (1 - e) * 2.2,
+        0.6 + (1 - e) * 6 + wob,
+        11.5 - (1 - e) * 2.2,
       );
       cam().lookAt(0, 0, 0);
       if (p >= 1) camT = -1;
     } else if (camShake > 0) {
       cam().position.x = (Math.random() - .5) * camShake;
-      cam().position.y = 3.2 + (Math.random() - .5) * camShake;
+      cam().position.y = 0.6 + (Math.random() - .5) * camShake;
     }
   });
 

@@ -37,7 +37,7 @@ export function initScene(low = false) {
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, .1, 120);
-  camera.position.set(0, 3.2, 9);
+  camera.position.set(0, 0.6, 11.5);
 
   pmrem = new THREE.PMREMGenerator(renderer);
   envTex = pmrem.fromScene(new RoomEnvironment(), .04).texture;

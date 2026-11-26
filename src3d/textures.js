@@ -31,8 +31,8 @@ export function makeWheelTexture(items, opts = {}) {
     const a = i * seg - Math.PI / 2;
     const x = C + Math.cos(a) * R * .985, y = C + Math.sin(a) * R * .985;
     g.beginPath(); g.moveTo(C, C); g.lineTo(x, y);
-    g.strokeStyle = 'rgba(232,200,106,.28)'; g.lineWidth = 10; g.stroke();
-    g.strokeStyle = '#c9a227'; g.lineWidth = 5; g.stroke();
+    g.strokeStyle = 'rgba(232,200,106,.22)'; g.lineWidth = 5; g.stroke();
+    g.strokeStyle = '#c9a227'; g.lineWidth = 2.5; g.stroke();
   }
 
   // 外缘刻度环（细密金点，呼应灯泡）
@@ -46,8 +46,8 @@ export function makeWheelTexture(items, opts = {}) {
   }
 
   // 弧排文字
-  const rText = R * .62;
-  const baseSize = n <= 6 ? 96 : n <= 10 ? 76 : n <= 16 ? 60 : 46;
+  const rText = R * .58;
+  const baseSize = n <= 6 ? 118 : n <= 10 ? 92 : n <= 16 ? 72 : 56;
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   for (let i = 0; i < n; i++) {
