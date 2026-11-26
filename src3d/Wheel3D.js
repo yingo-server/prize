@@ -69,23 +69,27 @@ export function createWheel3D(ctx) {
     map: faceTex, roughness: .32, metalness: .08,
     clearcoat: .8, clearcoatRoughness: .25,
   });
-  // 盘面：圆柱侧壁贴金色，顶面贴扇区纹理（圆柱 UV 顶面是极坐标圆，需重映射）
+  // 盘面：圆柱只当厚度体（顶/底用暗色），扇区贴图用独立 CircleGeometry（UV 与画布 1:1 对应，方向零歧义）
   const bodyGeo = new THREE.CylinderGeometry(2.4, 2.4, thickness, 128);
   const sideMat = new THREE.MeshPhysicalMaterial({
     color: 0x8a6a1f, metalness: .9, roughness: .3,
     map: goldStripeTexture(),
   });
-  const body = new THREE.Mesh(bodyGeo, [sideMat, faceMat, sideBottomMat()]);
+  const capMat = new THREE.MeshPhysicalMaterial({ color: 0x4a3208, metalness: .6, roughness: .45 });
+  const body = new THREE.Mesh(bodyGeo, [sideMat, capMat, capMat]);
   body.rotation.x = Math.PI / 2;         // 盘面立起（法向朝 ±z）
-  body.rotation.z = 0;
-  // 让顶面纹理旋到 +z：圆柱顶面 UV 是圆盘极坐标，直接用 rotation 修正
   body.castShadow = true; body.receiveShadow = true;
   discRoot.add(body);
 
-  // 修正顶面 UV：CylinderGeometry 顶面 UV 是以中心为圆心的平面映射（无需改，map 直接可用），
-  // 但贴图方向需与世界对齐：给 faceTex.center 设置旋转即可
+  // 扇区盘面（贴在圆柱前面 +z 侧，随盘转）
+  const faceGeo = new THREE.CircleGeometry(2.4, 128);
+  const face = new THREE.Mesh(faceGeo, faceMat);
+  face.position.z = thickness / 2 + .005;
+  face.receiveShadow = true;
+  discRoot.add(face);
+
   faceTex.center.set(.5, .5);
-  faceTex.rotation = Math.PI / 2;   // 补偿 Cylinder 顶面 UV 的 90° 偏转
+  faceTex.rotation = 0;   // CircleGeometry UV 与画布方向一致，无需补偿
 
   // 金属外圈 Torus
   const rim = new THREE.Mesh(

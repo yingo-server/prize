@@ -60,9 +60,7 @@ export function makeWheelTexture(items, opts = {}) {
     if (name.length * size * .62 > avail) size = Math.max(34, avail / (name.length * .62));
     g.save();
     g.translate(C, C);
-    // 左半区扇区整体旋转 π，使两侧文字都不倒置
-    const flip = Math.cos(mid) < 0 ? Math.PI : 0;
-    g.rotate(mid + Math.PI / 2 + flip);
+    g.rotate(mid + Math.PI / 2);          // 扇区中线朝上
     g.font = `900 ${size}px "STKaiti","KaiTi","Songti SC",serif`;
     g.lineWidth = size * .14;
     g.strokeStyle = 'rgba(42,4,8,.9)';
@@ -70,7 +68,7 @@ export function makeWheelTexture(items, opts = {}) {
     // 从外向内逐字排列（沿半径，字面朝切线方向=阅读方向一致）
     const step = size * 1.04;
     for (let ci = 0; ci < name.length; ci++) {
-      const y = flip === 0 ? R * .88 - ci * step : -R * .88 + ci * step;
+      const y = R * .88 - ci * step;
       g.strokeText(name[ci], 0, y);
       g.fillText(name[ci], 0, y);
     }
