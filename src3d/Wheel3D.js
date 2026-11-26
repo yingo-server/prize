@@ -111,10 +111,15 @@ export function createWheel3D(ctx) {
   const startCv = document.createElement('canvas');
   startCv.width = startCv.height = 256;
   const sc = startCv.getContext('2d');
+  // 金色渐变底
+  const sg = sc.createRadialGradient(128, 90, 20, 128, 128, 150);
+  sg.addColorStop(0, '#fff8dc'); sg.addColorStop(.5, '#e8c86a'); sg.addColorStop(1, '#b8901f');
+  sc.fillStyle = sg;
+  sc.beginPath(); sc.arc(128, 128, 126, 0, 7); sc.fill();
   sc.fillStyle = '#5c3d08';
-  sc.font = '900 72px "STKaiti","KaiTi",serif';
+  sc.font = '900 64px "STKaiti","KaiTi",serif';
   sc.textAlign = 'center'; sc.textBaseline = 'middle';
-  sc.fillText('开 始', 128, 132);
+  sc.fillText('开 始', 128, 130);
   const startTex = new THREE.CanvasTexture(startCv);
   startTex.colorSpace = THREE.SRGBColorSpace;
   const hubFace = new THREE.Mesh(

@@ -19,8 +19,8 @@ export function makeWheelTexture(items, opts = {}) {
     g.arc(C, C, R * .985, a0, a1);
     g.closePath();
     const grad = g.createRadialGradient(C, C * .6, R * .1, C, C, R);
-    if (i % 2) { grad.addColorStop(0, '#7d1019'); grad.addColorStop(1, '#5c0a12'); }
-    else { grad.addColorStop(0, '#b01320'); grad.addColorStop(1, '#8a0e19'); }
+    if (i % 2) { grad.addColorStop(0, '#8a1018'); grad.addColorStop(1, '#4a060c'); }
+    else { grad.addColorStop(0, '#d01624'); grad.addColorStop(1, '#9a1019'); }
     g.fillStyle = grad;
     g.fill();
   }
@@ -79,6 +79,8 @@ export function makeWheelTexture(items, opts = {}) {
         g.save();
         g.rotate(ca);
         g.translate(0, -rr);
+        // 直立汉字：以盘心为基准反向旋转，使字头始终朝上
+        g.rotate(-(ca + start));
         g.lineWidth = size * .14;
         g.strokeStyle = 'rgba(42,4,8,.9)';
         g.strokeText(chars[ci], 0, 0);
