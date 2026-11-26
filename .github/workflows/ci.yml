@@ -45,9 +45,9 @@ jobs:
       - name: Push to web branch (root)
         run: |
           cd dist
+          git init -b web
           git config user.name "ci-bot"
           git config user.email "ci-bot@users.noreply.github.com"
-          git init -b web
           git add -A
           git commit -m "deploy: ${{ github.sha }}"
           git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
