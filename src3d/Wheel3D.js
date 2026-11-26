@@ -85,7 +85,7 @@ export function createWheel3D(ctx) {
   // 修正顶面 UV：CylinderGeometry 顶面 UV 是以中心为圆心的平面映射（无需改，map 直接可用），
   // 但贴图方向需与世界对齐：给 faceTex.center 设置旋转即可
   faceTex.center.set(.5, .5);
-  faceTex.rotation = 0;
+  faceTex.rotation = Math.PI / 2;   // 补偿 Cylinder 顶面 UV 的 90° 偏转
 
   // 金属外圈 Torus
   const rim = new THREE.Mesh(
