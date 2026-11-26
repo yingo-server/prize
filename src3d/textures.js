@@ -45,7 +45,8 @@ export function makeWheelTexture(items, opts = {}) {
     g.fill();
   }
 
-  // 弧排文字
+  // 弧排文字（固化版：经典转盘放射式——整列文字随扇区中线旋转，字符沿半径方向排列，
+  // 不做逐字独立旋转，杜绝偏移/歪斜）
   const rText = R * .58;
   const baseSize = n <= 6 ? 118 : n <= 10 ? 92 : n <= 16 ? 72 : 56;
   g.textAlign = 'center';
@@ -54,41 +55,25 @@ export function makeWheelTexture(items, opts = {}) {
     const name = items[i].name;
     const isPen = items[i].isPenalty;
     const mid = i * seg + seg / 2 - Math.PI / 2;
-    // 弧长
-    const arcLen = rText * seg * .82;
+    const avail = R - rText - R * .06;
     let size = baseSize;
-    // 粗略宽度估算（中文字宽≈size）
-    const est = name.length * size;
-    if (est > arcLen) size = Math.max(34, size * arcLen / est);
-    const twoLines = name.length * size > arcLen;
-    const lines = twoLines
-      ? [name.slice(0, Math.ceil(name.length / 2)), name.slice(Math.ceil(name.length / 2))]
-      : [name];
-
-    for (let k = 0; k < lines.length; k++) {
-      const rr = rText - (k ? size * 1.15 : 0);
-      const spread = Math.min(seg * .72, (lines[k].length * size) / rr);
-      const start = mid - spread / 2;
-      g.save();
-      g.translate(C, C);
-      g.rotate(start);
-      g.font = `900 ${size}px "STKaiti","KaiTi","Songti SC",serif`;
-      const chars = lines[k].split('');
-      for (let ci = 0; ci < chars.length; ci++) {
-        const ca = (ci + .5) * (spread / chars.length);
-        g.save();
-        g.rotate(ca);
-        g.translate(0, -rr);
-        // 字头朝盘心（底朝外缘），配合 UV 旋转补偿后呈正立
-        g.lineWidth = size * .14;
-        g.strokeStyle = 'rgba(42,4,8,.9)';
-        g.strokeText(chars[ci], 0, 0);
-        g.fillStyle = isPen ? '#ffd9d4' : '#fff8dc';
-        g.fillText(chars[ci], 0, 0);
-        g.restore();
-      }
-      g.restore();
+    if (name.length * size * .62 > avail) size = Math.max(34, avail / (name.length * .62));
+    g.save();
+    g.translate(C, C);
+    g.rotate(mid + Math.PI / 2);          // 扇区中线朝上
+    g.font = `900 ${size}px "STKaiti","KaiTi","Songti SC",serif`;
+    g.lineWidth = size * .14;
+    g.strokeStyle = 'rgba(42,4,8,.9)';
+    g.fillStyle = isPen ? '#ffd9d4' : '#fff8dc';
+    // 从外向内逐字排列（沿半径，字面朝切线方向=阅读方向一致）
+    const step = size * 1.04;
+    const total = (name.length - 1) * step;
+    for (let ci = 0; ci < name.length; ci++) {
+      const y = R * .88 - ci * step;      // 起点：靠近外缘，向心排列
+      g.strokeText(name[ci], 0, y);
+      g.fillText(name[ci], 0, y);
     }
+    g.restore();
   }
 
   // 中心径向高光（玻璃感，弱化避免盖住扇区）
