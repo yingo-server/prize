@@ -267,7 +267,7 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
     const x = u * coatCv.width, y = (1 - v) * coatCv.height;
     g.save();
     g.globalCompositeOperation = 'destination-out';
-    g.beginPath(); g.arc(x, y, 26, 0, 7); g.fill();
+    g.beginPath(); g.arc(x, y, 34, 0, 7); g.fill();
     g.restore();
     coatTex.needsUpdate = true;
   }
@@ -275,7 +275,7 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
     const g = coatCv.getContext('2d');
     const d = g.getImageData(0, 0, coatCv.width, coatCv.height).data;
     let clear = 0, total = 0;
-    for (let i = 3; i < d.length; i += 4 * 61) { total++; if (d[i] < 128) clear++; }
+    for (let i = 3; i < d.length; i += 4 * 37) { total++; if (d[i] < 128) clear++; }
     return clear / Math.max(1, total);
   }
   function revealAll() {
