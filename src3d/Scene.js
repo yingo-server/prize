@@ -67,6 +67,7 @@ export function initScene(low = false) {
   onResize();
   addEventListener('resize', onResize);
   start();
+  window.__scene3d = () => ({ scene, camera, renderer, groups });
   return api;
 }
 
