@@ -1,7 +1,7 @@
 name: Build & Deploy
 on:
   push:
-    branches: [main]
+    branches: [main, 3d]
   workflow_dispatch:
 
 permissions:
@@ -38,9 +38,11 @@ jobs:
         run: npm install
 
       - name: Build frontend
-        run: npm run build
-        env:
-          NODE_ENV: production
+        run: |
+          if [[ "${{ github.ref_name }}" == "3d" ]]; then
+            export BUILD_3D=1
+          fi
+          npm run build
 
       - name: Push to web branch (root)
         run: |
