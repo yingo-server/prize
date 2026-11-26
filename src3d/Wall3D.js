@@ -26,6 +26,9 @@ export function createWall3D(ctx) {
       c.group.position.x = (col + .5) * gapX - w / 2;
       c.group.position.y = h / 2 - (row + .5) * gapY;
     });
+    // 网格整体居中到相机视线
+    group.position.y = 0;
+    group.position.z = 0;
     // 相机自适应：保证全部卡片可见（多分辨率通用）
     const cam = getCamera();
     const aspect = cam.aspect || 1;
