@@ -163,7 +163,8 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
     map: coatTex, roughness: .35, metalness: .15, transparent: true, opacity: 1,
   });
   const coat = new THREE.Mesh(new THREE.PlaneGeometry(cardW * .92, cardH * .92), coatMat);
-  coat.position.z = cardT / 2 + .012;
+  coat.position.z = -cardT / 2 - .012;   // 背面（翻转后朝向相机）
+  coat.rotation.y = Math.PI;
   coat.visible = false;
   group.add(coat);
 
@@ -173,7 +174,8 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
   prizeTex.colorSpace = THREE.SRGBColorSpace;
   const prizeMat = new THREE.MeshPhysicalMaterial({ map: prizeTex, roughness: .35, clearcoat: .6 });
   const prizeFace = new THREE.Mesh(new THREE.PlaneGeometry(cardW * .92, cardH * .92), prizeMat);
-  prizeFace.position.z = cardT / 2 + .01;
+  prizeFace.position.z = -cardT / 2 - .01;  // 背面
+  prizeFace.rotation.y = Math.PI;
   prizeFace.visible = false;
   group.add(prizeFace);
 
