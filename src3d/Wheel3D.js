@@ -90,7 +90,7 @@ export function createWheel3D(ctx) {
 
   faceTex.center.set(.5, .5);
   // CircleGeometry UV：canvas 内容需旋转 π 才与世界 12 点对齐（实测校准）
-  faceTex.rotation = Math.PI - Math.PI / 2;   // 实测：π 校正倒置，再 -π/2 对齐 12 点指针
+  faceTex.rotation = Math.PI;   // 校正倒置（12 点起画时文字倒 → 转 π 后正立）
 
   // 金属外圈 Torus
   const rim = new THREE.Mesh(
