@@ -23,8 +23,7 @@ export function createWall3D(ctx) {
     const w = cols * gapX, h = rows * gapY;
     cards.forEach((c, i) => {
       const col = i % cols, row = Math.floor(i / cols);
-      c.group.position.x = (col + .5) * gapX - w / 2;
-      c.group.position.y = h / 2 - (row + .5) * gapY;
+      c.setBase((col + .5) * gapX - w / 2, h / 2 - (row + .5) * gapY);
     });
     // 网格整体居中到相机视线
     group.position.y = 0;

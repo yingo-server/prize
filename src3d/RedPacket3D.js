@@ -212,6 +212,12 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
     st.hoverT = h;
     st.mx = mx; st.my = my;
   }
+  // 网格布局更新基准位置
+  function setBase(x, y) {
+    group.position.x = x;
+    st.baseY = y;
+    group.position.y = y;
+  }
 
   function open() {
     if (st.state !== 'idle') return;
@@ -309,7 +315,9 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
     mesh.scale.set(sq, 1 / sq, sq);
     group.rotation.x = st.tiltX;
     group.rotation.y = st.flipT >= 0 ? flipY + st.tiltY : st.tiltY;
-    group.position.y = (st.hoverT ? lift + .18 : lift) * (st.state === 'opened' ? 0 : 1);
+    // 在 layout 基准位置上叠加动画偏移（不覆盖网格坐标）
+    if (st.baseY === undefined) st.baseY = group.position.y;
+    group.position.y = st.baseY + (st.hoverT ? lift + .18 : lift) * (st.state === 'opened' ? 0 : 1);
     // 整体透明度（已开）
     const targetOp = st.state === 'opened' ? .5 : 1;
     for (const m of [frontMat, backMat, sideMat, prizeMat]) {
@@ -320,7 +328,7 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
 
   return {
     group, bind, st,
-    setHover, open, reset, markOpened, showScratch,
+    setHover, setBase, open, reset, markOpened, showScratch,
     scratchAt, scratchProgress, revealAll,
     get state() { return st.state; },
     destroy() { removeUpd(); },
