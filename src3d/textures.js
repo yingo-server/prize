@@ -79,8 +79,8 @@ export function makeWheelTexture(items, opts = {}) {
         g.save();
         g.rotate(ca);
         g.translate(0, -rr);
-        // 直立汉字：以盘心为基准反向旋转，使字头始终朝上
-        g.rotate(-(ca + start));
+        // 径向直立：字底朝盘心、字头朝外缘（保留扇区中线朝向，只抵消弧内偏移）
+        g.rotate(-ca + Math.PI / 2);
         g.lineWidth = size * .14;
         g.strokeStyle = 'rgba(42,4,8,.9)';
         g.strokeText(chars[ci], 0, 0);
