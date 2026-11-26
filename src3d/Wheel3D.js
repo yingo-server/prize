@@ -89,7 +89,8 @@ export function createWheel3D(ctx) {
   discRoot.add(face);
 
   faceTex.center.set(.5, .5);
-  faceTex.rotation = 0;   // CircleGeometry UV 与画布方向一致，无需补偿
+  // CircleGeometry UV：canvas 内容需旋转 π 才与世界 12 点对齐（实测校准）
+  faceTex.rotation = Math.PI;
 
   // 金属外圈 Torus
   const rim = new THREE.Mesh(
