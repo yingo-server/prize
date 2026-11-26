@@ -61,14 +61,15 @@
   pointer-events: none;
 }
 .home3d .home-title {
-  font-size: clamp(72px, 13vw, 240px);
+  font-size: clamp(72px, 11vh, 200px);
+  line-height: 1.05;
   letter-spacing: clamp(8px, 2vw, 24px);
   font-weight: 900; font-family: var(--f-title);
   animation: breathe 3.6s ease-in-out infinite;
 }
 .home-divider {
   width: min(60vw, calc(620 * var(--u)));
-  height: 2px; margin: clamp(10px, 3vh, 40px) 0;
+  height: 2px; margin: clamp(6px, 2vh, 28px) 0;
   background: linear-gradient(90deg, transparent, var(--c-gold-1), transparent);
   position: relative;
 }
@@ -79,11 +80,11 @@
   background: var(--c-gold-1);
   box-shadow: 0 0 calc(16 * var(--u)) rgba(232,200,106,.8);
 }
-.home-btns { display: flex; gap: clamp(16px, 6vw, 96px); pointer-events: auto; }
+.home-btns { display: flex; gap: clamp(16px, 6vw, 96px); pointer-events: auto; margin-top: clamp(8px, 3vh, 40px); }
 .entry3d {
-  display: flex; flex-direction: column; align-items: center; gap: clamp(8px, 2vh, 18px);
+  display: flex; flex-direction: column; align-items: center; gap: clamp(6px, 1.5vh, 18px);
   width: clamp(150px, 24vw, calc(460 * var(--u)));
-  height: clamp(80px, 20vh, calc(220 * var(--u)));
+  height: clamp(72px, 17vh, calc(220 * var(--u)));
   justify-content: center;
   border-radius: clamp(16px, calc(28 * var(--u)), 28px);
   background: radial-gradient(circle at 50% 0%, #b3121f 0%, #7a0f1a 55%, #4a0810 100%);
