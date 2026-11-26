@@ -6,12 +6,12 @@ import * as THREE from 'three';
 import { initScene, is3dAvailable, showGroup, addUpdater, resize3d, getCamera, set3dLowPerf } from './Scene.js';
 import { createWheel3D } from './Wheel3D.js';
 import { createWall3D } from './Wall3D.js';
-import { createPrizeResultModal } from '../components/PrizeResultModal.js';
-import { createConfig } from '../composables/useConfig.js';
-import { freshSeed, seedText, createPrng } from '../composables/usePrng.js';
-import { sfx, setAudioEnabled, initAudio } from '../composables/useAudio.js';
-import { initFx, startAmbient, winFx, resize as fxResize } from '../composables/useGlFx.js';
-import { initWasm } from '../composables/useWasm.js';
+import { createPrizeResultModal } from '../src/components/PrizeResultModal.js';
+import { createConfig } from '../src/composables/useConfig.js';
+import { freshSeed, seedText, createPrng } from '../src/composables/usePrng.js';
+import { sfx, setAudioEnabled, initAudio } from '../src/composables/useAudio.js';
+import { initFx, startAmbient, winFx, resize as fxResize } from '../src/composables/useGlFx.js';
+import { initWasm } from '../src/composables/useWasm.js';
 
 const appRoot = document.getElementById('app');
 
