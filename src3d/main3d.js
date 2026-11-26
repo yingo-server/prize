@@ -151,6 +151,7 @@ appRoot.appendChild(homeEl);
 // 这里挂一个透明点击层替代 3D hub 点击）
 const wheelUi = document.createElement('section');
 wheelUi.className = 'wheel-ui3d';
+wheelUi.style.display = 'none';
 wheelUi.innerHTML = `<button class="start-btn gold-btn">开 始</button>`;
 wheelUi.querySelector('.start-btn').addEventListener('click', () => startWheel());
 appRoot.appendChild(wheelUi);
@@ -158,6 +159,7 @@ appRoot.appendChild(wheelUi);
 // 红包墙页：无 DOM 面板（3D 卡片全屏交互）
 const wallUi = document.createElement('section');
 wallUi.className = 'wall-ui3d';
+wallUi.style.display = 'none';
 appRoot.appendChild(wallUi);
 
 function startWheel() {
