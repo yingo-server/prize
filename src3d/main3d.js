@@ -1,6 +1,6 @@
 // 3D 入口：精简 UI（转盘/红包墙 + 音量开关 + 惩罚ban开关），多分辨率自适应
 // 复用 useAudio / usePrng / useWasm / useGlFx / useConfig / 结果弹窗
-import '../styles/main.css';
+import '../src/styles/main.css';
 import './styles3d/app3d.css';
 import * as THREE from 'three';
 import { initScene, is3dAvailable, showGroup, addUpdater, resize3d, getCamera, set3dLowPerf } from './Scene.js';
