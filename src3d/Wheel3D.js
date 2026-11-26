@@ -107,14 +107,23 @@ export function createWheel3D(ctx) {
   );
   hubBase.rotation.x = Math.PI / 2;
   hubBase.castShadow = true;
+  // "开始"文字贴到 hubFace
+  const startCv = document.createElement('canvas');
+  startCv.width = startCv.height = 256;
+  const sc = startCv.getContext('2d');
+  sc.fillStyle = '#5c3d08';
+  sc.font = '900 72px "STKaiti","KaiTi",serif';
+  sc.textAlign = 'center'; sc.textBaseline = 'middle';
+  sc.fillText('开 始', 128, 132);
+  const startTex = new THREE.CanvasTexture(startCv);
+  startTex.colorSpace = THREE.SRGBColorSpace;
   const hubFace = new THREE.Mesh(
     new THREE.CircleGeometry(.55, 64),
-    new THREE.MeshPhysicalMaterial({ color: 0xfff8dc, roughness: .35, clearcoat: .8, emissive: 0x332200, emissiveIntensity: .4 }),
+    new THREE.MeshPhysicalMaterial({ map: startTex, color: 0xf7e3a1, roughness: .4, clearcoat: .8, emissive: 0x553c08, emissiveIntensity: .35 }),
   );
   hubFace.position.z = .18;
   hub.add(hubBase, hubFace);
   hub.position.z = .06;
-
   // 指针（不随盘转）
   const needle = buildNeedle();
   const needlePivot = new THREE.Group();

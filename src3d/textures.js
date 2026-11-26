@@ -79,9 +79,7 @@ export function makeWheelTexture(items, opts = {}) {
         g.save();
         g.rotate(ca);
         g.translate(0, -rr);
-        g.rotate(Math.PI / 2);   // 字头朝外
-        // 描边暗底 + 金填充
-        g.lineWidth = size * .12;
+        g.lineWidth = size * .14;
         g.strokeStyle = 'rgba(42,4,8,.9)';
         g.strokeText(chars[ci], 0, 0);
         g.fillStyle = isPen ? '#ffd9d4' : '#fff8dc';
@@ -92,11 +90,11 @@ export function makeWheelTexture(items, opts = {}) {
     }
   }
 
-  // 中心径向高光（玻璃感）
-  const hi = g.createRadialGradient(C, S * .3, 0, C, C, R);
-  hi.addColorStop(0, 'rgba(255,255,255,.16)');
-  hi.addColorStop(.5, 'rgba(255,255,255,.03)');
-  hi.addColorStop(1, 'rgba(0,0,0,.16)');
+  // 中心径向高光（玻璃感，弱化避免盖住扇区）
+  const hi = g.createRadialGradient(C, S * .34, 0, C, C, R);
+  hi.addColorStop(0, 'rgba(255,255,255,.10)');
+  hi.addColorStop(.5, 'rgba(255,255,255,.02)');
+  hi.addColorStop(1, 'rgba(0,0,0,.10)');
   g.fillStyle = hi;
   g.beginPath(); g.arc(C, C, R * .985, 0, 7); g.fill();
 

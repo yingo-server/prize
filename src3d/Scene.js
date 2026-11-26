@@ -43,7 +43,9 @@ export function initScene(low = false) {
   envTex = pmrem.fromScene(new RoomEnvironment(), .04).texture;
   scene.environment = envTex;
 
-  // 氛围：底部红色地平面承接阴影 + 顶部聚光
+  // 3D 场景背景：暗红渐变雾（不用纯 CSS，场景自含）
+  scene.background = new THREE.Color(0x1a0206);
+  scene.fog = new THREE.Fog(0x1a0206, 14, 40);
   const floor = new THREE.Mesh(
     new THREE.CircleGeometry(30, 64),
     new THREE.MeshStandardMaterial({ color: 0x2a0408, roughness: .85, metalness: .1 }),
