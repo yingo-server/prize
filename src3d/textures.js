@@ -77,10 +77,10 @@ export function makeWheelTexture(items, opts = {}) {
       for (let ci = 0; ci < chars.length; ci++) {
         const ca = (ci + .5) * (spread / chars.length);
         g.save();
+        // 直接在极坐标放置字符，字头朝外（radial-out），整体如唱片纹
         g.rotate(ca);
         g.translate(0, -rr);
-        // 径向直立：字底朝盘心、字头朝外缘（保留扇区中线朝向，只抵消弧内偏移）
-        g.rotate(-ca + Math.PI / 2);
+        g.rotate(Math.PI);   // 翻转使字头朝外缘（默认字头朝盘心）
         g.lineWidth = size * .14;
         g.strokeStyle = 'rgba(42,4,8,.9)';
         g.strokeText(chars[ci], 0, 0);
