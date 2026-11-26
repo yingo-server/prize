@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import { addUpdater, registerGroup, showGroup, getCamera, disposeGroup } from './Scene.js';
 import { makeWheelTexture } from './textures.js';
 import { createWheelPhysics } from './physics.js';
-import { sfx } from '../composables/useAudio.js';
-import { createPrng } from '../composables/usePrng.js';
+import { sfx } from '../src/composables/useAudio.js';
+import { createPrng } from '../src/composables/usePrng.js';
 const GOLD_RING = { color: 0xc9a227, metalness: .95, roughness: .22 };
 
 function buildNeedle() {

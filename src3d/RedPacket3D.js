@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { addUpdater } from './Scene.js';
 import { elasticOut } from './physics.js';
-import { sfx } from '../composables/useAudio.js';
+import { sfx } from '../src/composables/useAudio.js';
 
 function drawFront(item, opts = {}) {
   const W = 512, H = 645; // 1:1.26

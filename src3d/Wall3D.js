@@ -2,9 +2,9 @@
 import * as THREE from 'three';
 import { addUpdater, registerGroup, showGroup, getCamera, disposeGroup } from './Scene.js';
 import { createRedPacket3D, cardW, cardH } from './RedPacket3D.js';
-import { freshSeed, shuffle, createPrng } from '../composables/usePrng.js';
-import { sfx } from '../composables/useAudio.js';
-import { coinBurst } from '../composables/useGlFx.js';
+import { freshSeed, shuffle, createPrng } from '../src/composables/usePrng.js';
+import { sfx } from '../src/composables/useAudio.js';
+import { coinBurst } from '../src/composables/useGlFx.js';
 
 export function createWall3D(ctx) {
   const group = new THREE.Group();
