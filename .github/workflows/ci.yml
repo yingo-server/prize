@@ -1,0 +1,61 @@
+name: Build & Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---- Rust → WASM (gpu-accelerated physics / rng) ----
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-wasm
+
+      # ---- Node frontend ----
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build WASM
+        run: |
+          cd src-wasm
+          cargo build --release --target wasm32-unknown-unknown
+          cp target/wasm32-unknown-unknown/release/prize_wasm.wasm ../public/prize.wasm
+          ls -la ../public
+
+      - name: Install deps
+        run: npm install
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Push to web branch (root)
+        run: |
+          cd dist
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git init -b web
+          git add -A
+          git commit -m "deploy: ${{ github.sha }}"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          # force push dist root → web branch, retry up to 5 times on network flake
+          for i in 1 2 3 4 5; do
+            git push -f origin web:web --force && break
+            echo "push failed, retry $i"; sleep 5
+          done
+          git push -f origin web:web --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
