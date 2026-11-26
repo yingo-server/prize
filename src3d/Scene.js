@@ -24,6 +24,7 @@ export function initScene(low = false) {
   document.body.prepend(canvas);           // z-index 由 CSS 控制
   renderer = new THREE.WebGLRenderer({
     canvas, alpha: true, antialias: !lowPerf,
+    preserveDrawingBuffer: true,
     powerPreference: 'high-performance',
   });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
