@@ -283,11 +283,12 @@ export function createWall3D(ctx) {
     return Array.from(seed || []).map((x) => (x >>> 0).toString(16).padStart(8, '0')).join(' ');
   }
 
-  // 相机跟随（弹性）
+  // 相机跟随（弹性，仅 wall 视图时接管；转盘视图由 Wheel3D updater 控制）
   const removeCam = addUpdater((dt) => {
+    if (ctx.view !== 'wall') return;
     const cam = getCamera();
     cam.position.lerp(camGoal, Math.min(1, dt * 3));
-    if (ctx.view === 'wall') cam.lookAt(0, 0, 0);
+    cam.lookAt(0, 0, 0);
   });
 
   rebuild();
