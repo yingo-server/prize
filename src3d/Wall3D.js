@@ -138,6 +138,13 @@ export function createWall3D(ctx) {
       ctx.onPacketClick(card.bind);
     } else if (card.state === 'scratched') {
       scratchCard = card;
+      // 点击已刮卡 = 确认全显（规格的"确认全部显示"入口，3D 版以点击代替按钮）
+      card.revealAll();
+      sfx.coinBurst();
+      const rect = cardCenter(card);
+      coinBurst(rect.x, rect.y);
+      setTimeout(() => ctx.onPacketRevealed(card.bind), 350);
+      scratchCard = null;
     }
   }
   function onUp() { pointerDown = false; scratchCard = null; }
