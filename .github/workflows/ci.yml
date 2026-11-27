@@ -39,8 +39,9 @@ jobs:
 
       - name: Build frontend
         run: |
-          # main 已合并 3d 源码，默认构建 3D 版；如需 2.5D 版设 BUILD_2D=1
-          if [[ "${{ github.ref_name }}" != "2d" && "${BUILD_2D:-}" != "1" ]]; then
+          # 3d 分支 = 产物分支（web 分支由 3d 覆盖）；main = 源码分支
+          # 构建始终产出 3D 版（main 即 3d 源码）；如需 2.5D 版设 BUILD_2D=1
+          if [[ "${BUILD_2D:-}" != "1" ]]; then
             export BUILD_3D=1
           fi
           npm run build
@@ -48,17 +49,17 @@ jobs:
       - name: Push to web branch (root)
         run: |
           cd dist
-          git init -b web
+          git init -b 3d
           git config user.name "ci-bot"
           git config user.email "ci-bot@users.noreply.github.com"
           git add -A
           git commit -m "deploy: ${{ github.sha }}"
           git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          # force push dist root → web branch, retry up to 5 times on network flake
+          # force push dist root → 3d branch (产物覆盖)，retry up to 5 times on network flake
           for i in 1 2 3 4 5; do
-            git push -f origin web:web --force && break
+            git push -f origin 3d:3d --force && break
             echo "push failed, retry $i"; sleep 5
           done
-          git push -f origin web:web --force
+          git push -f origin 3d:3d --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
