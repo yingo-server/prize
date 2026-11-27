@@ -39,7 +39,8 @@ jobs:
 
       - name: Build frontend
         run: |
-          if [[ "${{ github.ref_name }}" == "3d" ]]; then
+          # main 已合并 3d 源码，默认构建 3D 版；如需 2.5D 版设 BUILD_2D=1
+          if [[ "${{ github.ref_name }}" != "2d" && "${BUILD_2D:-}" != "1" ]]; then
             export BUILD_3D=1
           fi
           npm run build
