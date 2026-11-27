@@ -163,11 +163,16 @@ export function createWall3D(ctx) {
     if (card) card.open();
   };
 
-  ctx.onPacketRevealed = (bind) => {
+  ctx.onPacketRevealed = async (bind) => {
     const card = cards.find((c) => c.bind === bind);
     bind.done = true;
     if (card) card.markOpened();
     updateStat();
+    // 惩罚项彩蛋：结果前 0.5s 人机验证（暂停结果流程）
+    if (bind.item.isPenalty && ctx.config?.人机验证?.已启用) {
+      ctx.setPhase('verify');
+      await ctx.humanVerify?.(bind.item);
+    }
     ctx.setPhase('result');
     const result = {
       name: bind.item.name, stock: bind.item.stock,

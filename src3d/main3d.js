@@ -8,7 +8,8 @@ import { initScene, is3dAvailable, showGroup, addUpdater, resize3d, getCamera, s
 import { createWheel3D } from './Wheel3D.js';
 import { createWall3D } from './Wall3D.js';
 import { createPrizeResultModal } from '../src/components/PrizeResultModal.js';
-import { createConfig } from '../src/composables/useConfig.js';
+import { loadConfig } from './useConfigJson.js';
+import { createHumanVerify } from './HumanVerify.js';
 import { freshSeed, seedText, createPrng } from '../src/composables/usePrng.js';
 import { sfx, setAudioEnabled, initAudio } from '../src/composables/useAudio.js';
 import { initFx, startAmbient, winFx, resize as fxResize } from '../src/composables/useGlFx.js';
@@ -16,24 +17,30 @@ import { initWasm } from '../src/composables/useWasm.js';
 
 const appRoot = document.getElementById('app');
 
-// ---- 全局状态 ----
+// ---- 全局状态（配置异步加载 config.json）----
 const S = {
   view: 'home',
   phase: 'idle',
-  config: createConfig(),
-  penaltyOn: createConfig().惩罚项.已启用,
+  config: null,          // 由 loadConfig 填充
+  penaltyOn: false,
   soundOn: true,
   lowPerf: false,
   seed: null,
   drawCount: 0,
   listeners: new Set(),
 };
+S.ready = loadConfig().then((cfg) => {
+  S.config = cfg;
+  S.penaltyOn = cfg.惩罚项.已启用;
+  syncPills();
+  notify();
+});
 const notify = () => { for (const fn of S.listeners) { try { fn(); } catch (_) {} } };
 const setPhase = (p) => { S.phase = p; notify(); };
 S.setPhase = setPhase; S.notify = notify;
 S.subscribe = (fn) => S.listeners.add(fn);
 S.toast = (msg) => showToast(msg);
-Object.defineProperty(S, 'wheelItems', { get: () => S.config.奖品 });
+Object.defineProperty(S, 'wheelItems', { get: () => S.config?.奖品 || [] });
 Object.defineProperty(S, 'view', { get: () => S._view, set: (v) => { S._view = v; } });
 S.view = 'home';
 
@@ -180,19 +187,31 @@ function startWheel() {
   wheel3d.spin(idx, seed);
 }
 
+// ---- 人机验证彩蛋（惩罚项触发：结果前 0.5s 弹窗，暂停结果流程）----
+const hv = createHumanVerify(appRoot);
+async function maybeVerify(item) {
+  if (!item?.isPenalty) return;
+  if (!S.config?.人机验证?.已启用) return;
+  await new Promise((r) => setTimeout(r, S.config.人机验证.时长毫秒 || 500));
+  await hv.show(S.config);
+}
+S.humanVerify = maybeVerify;
+
 // onSpinDone（由 Wheel3D 调）
-S.onSpinDone = (idx) => {
+S.onSpinDone = async (idx) => {
   const item = S.config.奖品[idx] || S.pending;
   if (item && !item.isPenalty && item.stock > 0) item.stock--;
   S.drawCount++;
   notify();
+  setPhase('verify');
+  const b0 = wheelUi.querySelector('.start-btn');
+  // 先禁输入，验证期间冻结结果
+  b0.disabled = true; b0.textContent = '停？';
+  await maybeVerify(item);
   setPhase('result');
   if (item.isPenalty) sfx.penalty(); else sfx.win();
   winFx();
   const result = { name: item.name, stock: item.stock, isPenalty: item.isPenalty, seedText: seedText(S.seed) };
-  if (item.isPenalty && !S.penaltyOn) {
-    // 不可能到这（pool 已过滤），保险
-  }
   modal.show(result, {
     buttonLabel: '继续抽奖',
     onButton: () => {
