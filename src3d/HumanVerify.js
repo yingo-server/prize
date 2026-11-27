@@ -45,13 +45,17 @@ export function createHumanVerify(host) {
       setTimeout(() => input.focus(), 80);
 
       const fail = () => {
+        if (done) return;
         tip.textContent = '不对哦，再想想？（机器人检测 +1）';
         tip.classList.add('warn');
         el.classList.add('hv-shake');
-        setTimeout(() => el.classList.remove('hv-shake'), 420);
+        setTimeout(() => el && el.classList.remove('hv-shake'), 420);
         input.select();
       };
+      let done = false;
       const succeed = () => {
+        if (done) return;
+        done = true;
         tip.textContent = passMsg;
         tip.classList.remove('warn');
         el.classList.add('hv-pass');
@@ -69,10 +73,10 @@ export function createHumanVerify(host) {
 
   function finish() {
     if (!el) return;
+    const r = resolver; resolver = null;
     el.classList.add('closing');
     setTimeout(() => el?.remove(), 300);
     el = null;
-    const r = resolver; resolver = null;
     r?.();
   }
 
