@@ -3,7 +3,7 @@ import { iconGift, iconWarn } from './icons.js';
 import { sfx } from '../composables/useAudio.js';
 
 export function createPrizeResultModal(root, ctx) {
-  let el = null, timer = null, currentClosed = null;
+  let el = null, timer = null, currentClosed = null, modalPrevFocus = null;
 
   function close() {
     if (!el) return;
@@ -16,6 +16,11 @@ export function createPrizeResultModal(root, ctx) {
     setTimeout(() => { node.remove(); }, 300);
     if (closed) closed();
     ctx.onModalClosed();
+    // a11y: 焦点归还触发元素
+    if (modalPrevFocus && modalPrevFocus.focus) {
+      try { modalPrevFocus.focus(); } catch (_) {}
+      modalPrevFocus = null;
+    }
   }
 
   function show(result, opts = {}) {
@@ -42,10 +47,17 @@ export function createPrizeResultModal(root, ctx) {
       </div>`;
     root.appendChild(el);
     currentClosed = modalClosed;
-    el.querySelector('.modal-btn').addEventListener('click', () => {
+    // a11y: 记录触发元素、初始焦点到主按钮、键盘 Esc 关闭
+    modalPrevFocus = document.activeElement;
+    const btn = el.querySelector('.modal-btn');
+    btn.addEventListener('click', () => {
       sfx.click();
       if (onButton) onButton(); else close();
     });
+    el.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !retryTip) close(); });
+    el.setAttribute('role', 'presentation');
+    el.querySelector('.modal-card').setAttribute('aria-label', penalty ? '很遗憾，抽中惩罚项目' : '恭喜中奖');
+    setTimeout(() => btn.focus(), 60);
     el.addEventListener('click', (e) => { if (e.target === el && !retryTip) close(); });
     return { close, setRetryTip(text) { const t = el?.querySelector('.modal-retry-tip'); if (t) t.textContent = text; } };
   }

@@ -69,13 +69,13 @@ topBar.innerHTML = `
   </div>
   <div class="bar-title" id="bar-title"></div>
   <div class="bar-right">
-    <button class="chip pill" data-a="sound" aria-label="音量">
+    <button class="chip pill" data-a="sound" aria-label="音效" aria-pressed="true">
       <span class="ico">🔊</span><span class="track"><i class="knob"></i></span>
     </button>
-    <button class="chip pill" data-a="penalty" aria-label="惩罚开关">
+    <button class="chip pill" data-a="penalty" aria-label="惩罚项" aria-pressed="false">
       <span class="ico">⛔</span><span class="track"><i class="knob"></i></span>
     </button>
-    <button class="chip" data-a="full">⛶</button>
+    <button class="chip" data-a="full" aria-label="全屏">⛶</button>
   </div>`;
 appRoot.appendChild(topBar);
 
@@ -91,7 +91,11 @@ function syncPills() {
   const snd = topBar.querySelector('[data-a=sound]');
   const pen = topBar.querySelector('[data-a=penalty]');
   snd.classList.toggle('on', S.soundOn);
+  snd.setAttribute('aria-pressed', String(S.soundOn));
+  snd.setAttribute('aria-label', S.soundOn ? '音效：开' : '音效：关');
   pen.classList.toggle('on', !S.penaltyOn);   // ban 开关：开=禁用惩罚（默认）
+  pen.setAttribute('aria-pressed', String(!S.penaltyOn));
+  pen.setAttribute('aria-label', S.penaltyOn ? '惩罚项：启用中' : '惩罚项：已禁用');
 }
 topBar.addEventListener('click', (e) => {
   const b = e.target.closest('[data-a]');

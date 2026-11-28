@@ -26,7 +26,7 @@
 }
 .bar-right { display: flex; gap: 10px; align-items: center; }
 .chip {
-  height: 34px; min-width: 34px;
+  height: 36px; min-width: 36px;
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid rgba(201,162,39,.4);
@@ -35,8 +35,10 @@
   cursor: pointer; transition: border-color .2s, box-shadow .2s, background .2s;
   white-space: nowrap;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  touch-action: manipulation;
 }
 .chip:hover { border-color: var(--c-gold-2); box-shadow: 0 0 10px rgba(232,200,106,.4); background: rgba(122,15,26,.7); }
+.chip[aria-pressed="true"] { border-color: var(--c-gold-2); background: rgba(122,15,26,.7); }
 /* 胶囊开关（音量 / 惩罚）—— 固定像素 */
 .pill { display: inline-flex; align-items: center; gap: 7px; }
 .pill .track {
@@ -178,9 +180,9 @@
   border: 1.5px solid rgba(201,162,39,.5);
   border-radius: 10px;
   color: #fff8dc; font-size: 18px; text-align: center;
-  outline: none;
 }
-.hv-input:focus { border-color: var(--c-gold-2); }
+.hv-input:focus-visible,
+.hv-input:focus { border-color: var(--c-gold-2); box-shadow: 0 0 0 3px rgba(232,200,106,.25); outline: none; }
 .hv-ok {
   height: 40px; padding: 0 20px;
   border-radius: 10px; border: none;
@@ -192,6 +194,30 @@
 .hv-tip.warn { color: var(--c-warn); }
 .hv-shake .hv-card { animation: shake3d .4s; }
 .hv-mask.closing { opacity: 0; transition: opacity .3s; }
+
+/* 键盘可见焦点（WCAG 2.4.7）：品牌金环，替代浏览器默认 */
+.chip:focus-visible,
+.entry3d:focus-visible,
+.hv-ok:focus-visible,
+.start-btn:focus-visible {
+  outline: 2px solid var(--c-gold-2);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(232,200,106,.2);
+}
+
+/* 动效减弱（WCAG 2.3.3 / motion rules 06 §6）：动画改淡入淡出，不删反馈 */
+@media (prefers-reduced-motion: reduce) {
+  .home3d .home-title { animation: none; }
+  .entry3d { transition: opacity .15s ease; }
+  .entry3d:hover { transform: none; }
+  .start-btn, .drag-hint { animation: none; }
+  #app.shake { animation: none; }
+  .toast-item { animation: fadeIn .15s ease; }
+  .hv-card, .hv-mask { animation: none; transition: opacity .15s ease; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #scene3d { /* 3D 旋转/物理由 JS 驱动，减动画时降低粒子在 useGlFx 层处理 */ }
+}
 
 /* 全局 shake（#app） */
 #app.shake { animation: shake3d .42s; }

@@ -31,7 +31,7 @@ export function createHumanVerify(host) {
           <div class="hv-greet">${greeting}</div>
           <div class="hv-expr">${expr}</div>
           <div class="hv-row">
-            <input class="hv-input" inputmode="numeric" autocomplete="off" placeholder="答案" />
+            <input class="hv-input" inputmode="numeric" pattern="[0-9-]*" autocomplete="off" placeholder="答案" aria-label="验证答案" />
             <button class="hv-ok">确认</button>
           </div>
           <div class="hv-tip">通过后继续 · 就差一步</div>
