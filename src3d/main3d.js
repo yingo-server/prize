@@ -155,37 +155,45 @@ homeEl.addEventListener('click', (e) => {
 });
 appRoot.appendChild(homeEl);
 
-// 转盘页：只有 3D 转盘（+ 隐藏的开始由 3D 盘中心触发？——精简：中央浮动开始按钮由 3D 内 hub 提供，
-// 这里挂一个透明点击层替代 3D hub 点击）
+// 转盘页：3D 转盘全屏，手势拖拽甩动（无按钮——盘本身就是操作面）
 const wheelUi = document.createElement('section');
 wheelUi.className = 'wheel-ui3d';
 wheelUi.style.display = 'none';
-wheelUi.innerHTML = `<button class="start-btn gold-btn">开 始</button>`;
-wheelUi.querySelector('.start-btn').addEventListener('click', () => startWheel());
+wheelUi.innerHTML = `<div class="drag-hint">按住盘面拖拽甩动</div>`;
 appRoot.appendChild(wheelUi);
+
+// 手动抽奖流程：转盘物理停止 → onSpinDone(idx)（Wheel3D 内部驱动）→ 结果 + 验证彩蛋
+S.onSpinDone = async (idx) => {
+  const item = S.config.奖品[idx];
+  if (!item) return;
+  if (!item.isPenalty && item.stock > 0) item.stock--;
+  S.drawCount++;
+  notify();
+  setPhase('verify');
+  await maybeVerify(item);          // 惩罚项：人机验证（结果暂停 0.5s）
+  setPhase('result');
+  if (item.isPenalty) sfx.penalty(); else sfx.win();
+  winFx();
+  const result = { name: item.name, stock: item.stock, isPenalty: item.isPenalty, seedText: seedText(S.seed || freshSeed()) };
+  modal.show(result, {
+    buttonLabel: '继续抽奖',
+    onButton: () => {
+      modal.close();
+      setPhase('idle');
+      wheel3d?.clearWin();
+    },
+    modalClosed: () => {
+      setPhase('idle');
+      wheel3d?.clearWin();
+    },
+  });
+};
 
 // 红包墙页：无 DOM 面板（3D 卡片全屏交互）
 const wallUi = document.createElement('section');
 wallUi.className = 'wall-ui3d';
 wallUi.style.display = 'none';
 appRoot.appendChild(wallUi);
-
-function startWheel() {
-  if (S.phase === 'spinning' || !wheel3d) return;
-  const seed = freshSeed(); S.seed = seed;
-  const pool = S.config.奖品.filter((p) => (p.stock > 0) && (!p.isPenalty || S.penaltyOn));
-  if (!pool.length) { showToast('没有可抽取的有效奖品', true); return; }
-  const total = pool.reduce((s, p) => s + (p.weight || 1), 0);
-  const rnd = createPrng(seed[0] ^ (seed[1] << 1));
-  let r = rnd() * total, pick = pool[pool.length - 1];
-  for (const p of pool) { r -= p.weight || 1; if (r <= 0) { pick = p; break; } }
-  S.pending = pick;
-  setPhase('spinning');
-  wheelUi.querySelector('.start-btn').disabled = true;
-  wheelUi.querySelector('.start-btn').textContent = '转动中';
-  const idx = S.config.奖品.indexOf(pick);
-  wheel3d.spin(idx, seed);
-}
 
 // ---- 人机验证彩蛋（惩罚项触发：结果前 0.5s 弹窗，暂停结果流程）----
 const hv = createHumanVerify(appRoot);
@@ -198,38 +206,6 @@ async function maybeVerify(item) {
 S.humanVerify = maybeVerify;
 
 // onSpinDone（由 Wheel3D 调）
-S.onSpinDone = async (idx) => {
-  const item = S.config.奖品[idx] || S.pending;
-  if (item && !item.isPenalty && item.stock > 0) item.stock--;
-  S.drawCount++;
-  notify();
-  setPhase('verify');
-  const b0 = wheelUi.querySelector('.start-btn');
-  // 先禁输入，验证期间冻结结果
-  b0.disabled = true; b0.textContent = '停？';
-  await maybeVerify(item);
-  setPhase('result');
-  if (item.isPenalty) sfx.penalty(); else sfx.win();
-  winFx();
-  const result = { name: item.name, stock: item.stock, isPenalty: item.isPenalty, seedText: seedText(S.seed) };
-  modal.show(result, {
-    buttonLabel: '继续抽奖',
-    onButton: () => {
-      modal.close();
-      setPhase('idle');
-      wheel3d?.clearWin();
-      const b = wheelUi.querySelector('.start-btn');
-      b.disabled = false; b.textContent = '开 始';
-    },
-    modalClosed: () => {
-      setPhase('idle');
-      wheel3d?.clearWin();
-      const b = wheelUi.querySelector('.start-btn');
-      b.disabled = false; b.textContent = '开 始';
-    },
-  });
-};
-
 // 红包墙回调由 createWall3D 内部挂到 S（onPacketClick / onPacketRevealed / setPhase / toast / shake / fx）
 S.fx = { win: winFx };
 S.shake = () => {

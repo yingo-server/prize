@@ -1,7 +1,8 @@
-// 3D 红包：带厚度盒体 + CanvasTexture 正面 + 弹簧 hover 倾斜 + 翻转开包 + squash-stretch
+// 3D 红包：带厚度盒体 + CanvasTexture 正面 + 弹簧 hover 倾斜 + 刚体翻转开包 + 质量弹簧落地
+// 全物理：翻转由角冲量+恢复力矩驱动，squash 由线性质量-弹簧-阻尼模型驱动，无缓动曲线
 import * as THREE from 'three';
 import { addUpdater } from './Scene.js';
-import { elasticOut } from './physics.js';
+import { createPacketPhysics } from './physics.js';
 import { sfx } from '../src/composables/useAudio.js';
 
 function drawFront(item, opts = {}) {
@@ -199,22 +200,34 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
   seal.visible = false;
   group.add(seal);
 
+  // ---- 刚体物理（翻转/落地压缩/hover 扭转）----
+  const phys = createPacketPhysics();
+
   // 状态
   const st = {
     state: 'idle', // idle | flipped | scratched | opened
-    hover: 0, hoverV: 0,
-    tiltX: 0, tiltXV: 0, tiltY: 0, tiltYV: 0,
-    flipT: -1, squash: 0, squashV: 0,
     baseRotZ: (Math.random() - .5) * .05,
     fade: 1,
   };
+  let draggingFlip = false;   // 拖拽翻面中（Wall3D 通过 dragFlip 驱动）
 
-  // hover 指针检测由 Wall3D 射线统一驱动，这里提供接口
+  // hover（Wall3D 射线驱动）
   function setHover(h, mx, my) {
     st.hoverT = h;
     st.mx = mx; st.my = my;
   }
-  // 网格布局更新基准位置
+  // 拖拽翻面：外部注入拖拽角速度（手指横向速度映射）
+  function dragFlipStart() { draggingFlip = true; }
+  function dragFlipMove(dragOmega) {
+    if (!draggingFlip) return;
+    phys.st.flipVel = dragOmega;
+  }
+  function dragFlipEnd() {
+    draggingFlip = false;
+    // 松手：翻过重心自然翻完，没过则物理翻回（无需干预）
+  }
+
+  // 网格布局基准位置
   function setBase(x, y) {
     group.position.x = x;
     st.baseY = y;
@@ -224,7 +237,7 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
   function open() {
     if (st.state !== 'idle') return;
     st.state = 'flipped';
-    st.flipT = 0;
+    phys.startFlip();
     sfx.click();
   }
 
@@ -237,30 +250,38 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
     st.state = 'opened';
     coat.visible = false;
     seal.visible = true;
-    group.traverse((o) => { if (o.material === frontMat) { } });
     frontMat.color.set(0x999999);
     backMat.color.set(0x666666);
     sideMat.color.set(0x555555);
-    group.position.y -= 0;
     st.fade = .55;
+  }
+
+  function showScratch() {
+    coat.visible = true;
+    prizeFace.visible = true;
+    coatMat.opacity = 1;
   }
   function reset(item) {
     st.state = 'idle';
     coat.visible = false; prizeFace.visible = false; seal.visible = false;
     frontMat.color.set(0xffffff); backMat.color.set(0xffffff); sideMat.color.set(0xffffff);
-    st.flipT = -1;
+    phys.st.flipAng = 0; phys.st.flipVel = 0; phys.st.flipping = false; phys.st.caught = false;
     group.rotation.y = st.baseRotZ;
-    // 重绘奖品面
-    prizeMat.map?.dispose();
-    const cv = drawPrizeFace(item);
-    prizeMat.map = new THREE.CanvasTexture(cv);
-    prizeMat.map.colorSpace = THREE.SRGBColorSpace;
-    prizeMat.needsUpdate = true;
+    updatePrizeFace(item);
     // 重置刮层
     const c2 = drawCoat();
     coatTex.image = c2;
     coatTex.needsUpdate = true;
     coatMat.opacity = 1;
+  }
+
+  // 重新绑定奖品（物理翻面后才抽奖——翻开哪张，哪张出结果）
+  function updatePrizeFace(item) {
+    prizeMat.map?.dispose();
+    const cv = drawPrizeFace(item);
+    prizeMat.map = new THREE.CanvasTexture(cv);
+    prizeMat.map.colorSpace = THREE.SRGBColorSpace;
+    prizeMat.needsUpdate = true;
   }
 
   // 刮层刮除：暴露 canvas + UV 换算
@@ -285,42 +306,41 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
     coat.visible = false;
   }
 
-  // 每帧动画
+  // 每帧：纯物理积分（无缓动曲线）
   const removeUpd = addUpdater((dt) => {
-    // hover 弹簧倾斜
+    // 翻转刚体
+    phys.stepFlip(dt);
+    // 落地压缩弹簧
+    phys.stepSquash(dt);
+    // hover 扭转弹簧（目标角由 hover 状态给出）
     const targetY = (st.hoverT ? (st.mx || 0) * .22 : 0) + st.baseRotZ;
     const targetX = st.hoverT ? (st.my || 0) * .16 : 0;
-    st.tiltYV += ((targetY - st.tiltY) * 160 - st.tiltYV * 12) * dt;
-    st.tiltY += st.tiltYV * dt;
-    st.tiltXV += ((targetX - st.tiltX) * 160 - st.tiltXV * 12) * dt;
-    st.tiltX += st.tiltXV * dt;
+    phys.stepTilt(dt, targetX, targetY);
 
-    // 翻转 + squash-stretch
-    let flipY = 0, lift = 0, sq = 1;
-    if (st.flipT >= 0) {
-      st.flipT += dt;
-      const p = Math.min(1, st.flipT / .9);
-      flipY = elasticOut(p) * Math.PI;
-      lift = Math.sin(p * Math.PI) * .5;
-      if (p >= .96 && st.state === 'flipped') {
-        st.state = 'scratched';
-        showScratch();
-        ctx.onPacketScratchReady?.(bind);
-      }
-      // 落地 squash
-      sq = 1 + Math.sin(p * Math.PI * 2) * .08 * (1 - p);
+    // 翻转状态推进：物理角到位（>3.05 rad 即接近 π）时进入刮开
+    if (st.state === 'flipped' && !phys.st.flipping && phys.st.flipAng > 3.0) {
+      st.state = 'scratched';
+      showScratch();
+      ctx.onPacketScratchReady?.(bind);
     }
-    if (st.state === 'opened') {
-      group.scale.setScalar(Math.min(1, st.fade + .45));
-      group.position.y = lift - .05;
+    // 未翻过重心：物理自动翻回 → 回到 idle
+    if (st.state === 'flipped' && !phys.st.flipping && phys.st.flipAng <= 0.02) {
+      st.state = 'idle';
     }
-    mesh.scale.set(sq, 1 / sq, sq);
-    group.rotation.x = st.tiltX;
-    group.rotation.y = st.flipT >= 0 ? flipY + st.tiltY : st.tiltY;
-    // 在 layout 基准位置上叠加动画偏移（不覆盖网格坐标）
+
+    // 应用物理到渲染
+    const flipY = phys.st.flipAng;
+    const comp = phys.st.comp;
+    mesh.scale.set(1 + comp * .7, 1 - comp, 1 + comp * .7);   // squash：体积守恒
+    group.rotation.x = phys.st.tiltX;
+    group.rotation.y = flipY + phys.st.tiltY;
+
+    // 抬起量 = 翻转离心（绕底边翻，重心抬升 ∝ sin）
+    const lift = Math.sin(Math.min(flipY, Math.PI)) * .45;
     if (st.baseY === undefined) st.baseY = group.position.y;
-    group.position.y = st.baseY + (st.hoverT ? lift + .18 : lift) * (st.state === 'opened' ? 0 : 1);
-    // 整体透明度（已开）
+    group.position.y = st.baseY + (st.hoverT && st.state === 'idle' ? .18 : 0) + lift * (st.state === 'opened' ? 0 : 1);
+
+    // 已开淡出
     const targetOp = st.state === 'opened' ? .5 : 1;
     for (const m of [frontMat, backMat, sideMat, prizeMat]) {
       m.transparent = true;
@@ -329,8 +349,9 @@ export function createRedPacket3D(sceneRoot, ctx, bind) {
   });
 
   return {
-    group, bind, st,
-    setHover, setBase, open, reset, markOpened, showScratch,
+    group, bind, st, phys,
+    setHover, setBase, open, reset, markOpened, showScratch, updatePrizeFace,
+    dragFlipStart, dragFlipMove, dragFlipEnd,
     scratchAt, scratchProgress, revealAll,
     get state() { return st.state; },
     destroy() { removeUpd(); },

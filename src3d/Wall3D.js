@@ -134,22 +134,41 @@ export function createWall3D(ctx) {
     pointerDown = true;
     const card = pickCard(e);
     if (!card) return;
+    downPos = { x: e.clientX, y: e.clientY };
     if (card.state === 'idle' && ctx.phase === 'idle') {
-      ctx.onPacketClick(card.bind);
+      // 拖拽翻面：按住即开始跟踪，横移量驱动翻转（物理判定能否翻过重心）
+      dragCard = card;
+      card.dragFlipStart();
     } else if (card.state === 'scratched') {
       scratchCard = card;
-      // 点击已刮卡 = 确认全显（规格的"确认全部显示"入口，3D 版以点击代替按钮）
-      card.revealAll();
-      sfx.coinBurst();
-      const rect = cardCenter(card);
-      coinBurst(rect.x, rect.y);
-      setTimeout(() => ctx.onPacketRevealed(card.bind), 350);
-      scratchCard = null;
     }
   }
-  function onUp() { pointerDown = false; scratchCard = null; }
+  let downPos = null, dragCard = null;
 
-  addEventListener('pointermove', onMove);
+  function onDragMove(e) {
+    if (!dragCard) return;
+    const dx = e.clientX - downPos.x;
+    dragCard.dragFlipMove(dx * 0.02);   // 手指横移 → 翻转角速度
+  }
+  function onUp(e) {
+    pointerDown = false;
+    if (dragCard) {
+      // 松手：轻扫（横移大）→ 物理翻过去；没过重心物理翻回
+      const dx = downPos ? e.clientX - downPos.x : 0;
+      if (Math.abs(dx) > 60) {
+        dragCard.dragFlipEnd();
+        dragCard.bind.bannedPenalty = false;
+        // 翻转完成的处理走 onPacketScratchReady（物理到位后触发）
+      } else {
+        // 没拖到位：物理翻回，恢复 idle（无需处理，物理自动归位）
+        dragCard.dragFlipEnd();
+      }
+      dragCard = null;
+    }
+    scratchCard = null;
+  }
+
+  addEventListener('pointermove', (e) => { onMove(e); onDragMove(e); });
   addEventListener('pointerdown', onDown);
   addEventListener('pointerup', onUp);
 
@@ -157,6 +176,14 @@ export function createWall3D(ctx) {
   ctx.onPacketScratchReady = (bind) => {
     const card = cards.find((c) => c.bind === bind);
     if (card) scratchCard = card;
+    // 拖拽翻面成功：此刻才抽奖（物理决定谁翻开，翻开的卡绑定新结果）
+    const pick = drawFor(bind);
+    if (pick) {
+      bind.item = pick;
+      bind.seed = freshSeed();
+      bind.bannedPenalty = pick.isPenalty && !ctx.penaltyOn;
+      card?.updatePrizeFace(pick);
+    }
     ctx.setPhase('scratched');
   };
 

@@ -102,32 +102,21 @@
 .entry3d:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 0 calc(48 * var(--u)) rgba(232,200,106,.55), 0 calc(10 * var(--u)) calc(24 * var(--u)) rgba(0,0,0,.5); }
 .entry3d:active { transform: translateY(3px) scale(.98); }
 
-/* 转盘页：3D 转盘占满场景。开始动作由 3D hub 提供，浮动按钮固定在转盘正下方 */
+/* 转盘页：3D 转盘全屏，手势拖拽甩动（无按钮） */
 .wheel-ui3d, .wall-ui3d {
   position: fixed; inset: 0; z-index: 10;
   display: flex; align-items: flex-end; justify-content: center;
-  padding-bottom: clamp(12px, 4vh, calc(64 * var(--u)));
+  padding-bottom: clamp(12px, 4vh, 64px);
   pointer-events: none;
 }
-.start-btn {
-  pointer-events: auto;
-  width: clamp(84px, 12vh, calc(180 * var(--u)));
-  height: clamp(84px, 12vh, calc(180 * var(--u)));
-  border-radius: 50%;
-  font-family: var(--f-title); font-weight: 900;
-  font-size: clamp(18px, 3.4vh, calc(44 * var(--u)));
-  letter-spacing: 4px; color: #5c3d08;
-  background: radial-gradient(circle at 50% 30%, #fff8dc, #e8c86a 40%, #c9a227 70%, #8a6a1f);
-  border: calc(6 * var(--u)) solid transparent;
-  border-image: linear-gradient(160deg, #fff8dc, #c9a227, #8a6a1f) 1;
-  cursor: pointer;
-  box-shadow: 0 0 calc(24 * var(--u)) rgba(232,200,106,.6);
-  transition: transform .2s var(--ease-out), filter .2s;
-  animation: btnBreath 2.4s ease-in-out infinite;
+.drag-hint {
+  color: rgba(247,227,161,.55);
+  font-size: 14px; letter-spacing: 2px;
+  animation: hintPulse 2.6s ease-in-out infinite;
+  pointer-events: none;
+  user-select: none;
 }
-.start-btn:hover { transform: scale(1.05); }
-.start-btn:active { transform: scale(.94); filter: brightness(.85); }
-.start-btn:disabled { filter: brightness(.8); cursor: default; animation: none; }
+@keyframes hintPulse { 0%,100% { opacity: .35 } 50% { opacity: .8 } }
 
 /* toast */
 .toast3d {

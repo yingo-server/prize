@@ -4,7 +4,7 @@ import { addUpdater, registerGroup, showGroup, getCamera, disposeGroup } from '.
 import { makeWheelTexture } from './textures.js';
 import { createWheelPhysics } from './physics.js';
 import { sfx } from '../src/composables/useAudio.js';
-import { createPrng } from '../src/composables/usePrng.js';
+
 const GOLD_RING = { color: 0xc9a227, metalness: .95, roughness: .22 };
 
 function buildNeedle() {
@@ -154,10 +154,60 @@ export function createWheel3D(ctx) {
   group.add(pedestal, discRoot, hub, needlePivot);
   registerGroup('wheel', group);
 
-  // ---- 物理状态 ----
+  // ---- 拖拽物理 ----
   const phys = createWheelPhysics({
     onPinHit: (omega) => { sfx.decelTick(); },
+    onDragEnd: (omega) => { sfx.spinStart(); sfx.spinLoopStart(); },
   });
+
+  // 屏幕坐标 → 盘面角度（射线到盘面 z 平面，取相对盘心的方位角）
+  function screenToWheelAngle(clientX, clientY) {
+    const ndc = new THREE.Vector2(
+      (clientX / innerWidth) * 2 - 1,
+      -(clientY / innerHeight) * 2 + 1,
+    );
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(ndc, getCamera());
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const pt = new THREE.Vector3();
+    if (!ray.ray.intersectPlane(plane, pt)) return null;
+    return Math.atan2(pt.y, pt.x);
+  }
+
+  function onPointerDown(e) {
+    if (ctx.view !== 'wheel' || spinning) return;
+    // 只在盘面附近响应（中心 hub 和指针除外——粗略用屏幕中心距离判断）
+    const angle = screenToWheelAngle(e.clientX, e.clientY);
+    if (angle === null) return;
+    dragging = true;
+    phys.dragStart(angle);
+    hubFace.material.emissiveIntensity = .12;
+  }
+  function onPointerMove(e) {
+    if (!dragging) return;
+    const angle = screenToWheelAngle(e.clientX, e.clientY);
+    if (angle === null) return;
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - (lastMoveT || now - 16)) / 1000);
+    lastMoveT = now;
+    phys.dragMove(angle, dt);
+  }
+  function onPointerUp() {
+    if (!dragging) return;
+    dragging = false;
+    phys.dragEnd();
+    if (phys.st.spinning) {
+      spinning = true;
+      hubFace.material.emissiveIntensity = .15;
+      const b = document.querySelector('.start-btn');
+      if (b) { b.disabled = true; b.textContent = '转动中'; }
+    }
+  }
+  let dragging = false, lastMoveT = 0;
+  addEventListener('pointerdown', onPointerDown);
+  addEventListener('pointermove', onPointerMove);
+  addEventListener('pointerup', onPointerUp);
+  addEventListener('pointercancel', onPointerUp);
   let spinning = false;
   let winSector = -1;
   let winPulseT = 0;
@@ -170,24 +220,9 @@ export function createWheel3D(ctx) {
     camT = 0;
   }
 
-  function spin(itemIndex, seed) {
-    if (spinning) return;
-    spinning = true;
-    winSector = -1;
-    sfx.spinStart(); sfx.spinLoopStart();
-    const N = n();
-    const seg = Math.PI * 2 / N;
-    const rnd = createPrng(seed[0] ^ (seed[1] << 1));
-    const turns = ctx.config.转盘设置.最少旋转圈数 + Math.floor(rnd() * 2);
-    const jitter = (rnd() - .5) * seg * .6;
-    // 目标角：让扇区 i 中线停在指针（12 点 = π/2）下
-    // 盘逆时针转 angle 后，扇区 i 的中线位于 i*seg + seg/2 + angle；要 = π/2 (mod 2π)
-    const target = Math.PI * 2 * turns + (Math.PI / 2 - (itemIndex * seg + seg / 2)) + jitter;
-    const duration = ctx.config.转盘设置.转动时长毫秒 / 1000;
-    phys.launch(target, duration);
-    cameraIntro();
-    hubFace.material.emissiveIntensity = .15;
-  }
+  // spin 已由手势拖拽取代（见上方 pointer handlers）——结果由物理自然停在某个扇区，
+  // 中奖结果 = 停止位置的扇区（完全公平：力度决定结果，无预设）
+  function spin(_itemIndex, _seed) { /* 兼容旧接口：无操作 */ }
 
   function clearWin() {
     winSector = -1;
@@ -201,39 +236,31 @@ export function createWheel3D(ctx) {
   // ---- 每帧 ----
   const cam = () => getCamera();
   const removeUpd = addUpdater((dt, t) => {
-    // 物理步进（子步长保证高速时不穿钉）
-    if (phys.st.spinning) {
-      const sub = Math.max(1, Math.ceil(phys.st.omega * dt / .06));
+    // 物理步进（子步长保证高速不穿钉）
+    if (phys.st.dragging || phys.st.spinning) {
+      const sub = Math.max(1, Math.ceil(Math.abs(phys.st.omega) * dt / .05));
       for (let i = 0; i < sub; i++) phys.step(dt / sub);
-      phys.st.nAngle = Math.max(-.18, Math.min(.62, phys.st.nAngle));
-      needlePivot.rotation.z = phys.st.nAngle;
-      discRoot.rotation.z = -phys.st.angle;   // 逆时针为正 → three z 轴顺时针为正
-      // 灯泡周期随进度
-      const remain = phys.st.target - phys.st.angle;
-      const total = phys.st.target - (phys.st.angle - phys.st.omega * 0);
-      const p = 1 - Math.min(1, remain / (Math.PI * 2 * 7));
-      lampFlash = (120 + 500 * Math.pow(1 - p, 2)) / 1000;
-      // spin loop 音调
-      sfx.spinLoopRate(Math.min(1, phys.st.omega / 14));
-      // 相机微震随速度
-      camShake = phys.st.omega * .004;
+      needlePivot.rotation.z = phys.st.nTheta;
+      discRoot.rotation.z = -phys.st.theta;
+      // 灯泡周期随速度（真实转速驱动）
+      const speed = Math.abs(phys.st.dragging ? phys.st._fingerVel : phys.st.omega);
+      const p = Math.min(1, speed / 30);
+      lampFlash = (0.12 + 0.5 * p * p);
+      sfx.spinLoopRate(Math.min(1, speed / 30));
+      camShake = speed * .004;
       if (phys.st.done) {
         phys.st.done = false;
         spinning = false;
         sfx.spinLoopStop();
-        // 计算停在了哪个扇区
-        const N2 = n();
-        const seg2 = Math.PI * 2 / N2;
-        let a = (Math.PI / 2 - phys.st.angle) % (Math.PI * 2);
-        if (a < 0) a += Math.PI * 2;
-        const idx = Math.floor(a / seg2) % N2;
+        const idx = phys.sectorAtPointer();
         highlight(idx);
-        needleBounce();
+        phys.st.nOmega = -2.4;   // 指针最后回弹（真实弹簧受到的扰动）
         setTimeout(() => ctx.onSpinDone(idx), 200);
       }
     } else {
+      phys.step(dt);             // 指针弹簧仍需积分
       camShake = 0;
-      needlePivot.rotation.z *= Math.exp(-6 * dt); // 停转后指针缓慢回正
+      needlePivot.rotation.z = phys.st.nTheta;
     }
 
     // 灯泡闪烁
@@ -274,10 +301,6 @@ export function createWheel3D(ctx) {
   });
 
   let lampFlashAcc = 0, lampPhase = 0;
-  function needleBounce() {
-    // 停止瞬间指针回弹动画：给一次反向冲量再衰减
-    phys.st.nOmega = -2.4;
-  }
 
   function rebuild() {
     // 奖品配置变了：重建纹理与灯泡数
