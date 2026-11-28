@@ -6,35 +6,37 @@
 }
 #fx-layer { z-index: 60 !important; }
 
-/* 顶栏：精简（音量 + 惩罚ban + 全屏），固定、自适应——高度/边距全部锁死不随 --u 漂移 */
+/* 顶栏：悬浮玻璃胶囊（场记牌感），只有音量+惩罚ban+全屏，固定 px */
 .bar3d {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 30;
-  height: 56px;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px;
-  background: linear-gradient(180deg, rgba(26,2,6,.92), rgba(61,6,14,.66));
-  border-bottom: 1px solid rgba(201,162,39,.4);
-  backdrop-filter: blur(8px);
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 30;
+  display: flex; align-items: center; gap: 14px;
+  padding: 8px 18px;
+  background: rgba(26,2,6,.72);
+  border: 1px solid rgba(201,162,39,.45);
+  border-radius: 999px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,248,220,.08);
 }
-.bar-left, .bar-right { display: flex; gap: 10px; min-width: 180px; }
-.bar-right { justify-content: flex-end; }
+.bar-left { display: none; }
 .bar-title {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  font-family: var(--f-title); font-size: 17px;
-  color: var(--c-gold-2); letter-spacing: 4px;
+  font-family: var(--f-title); font-size: 15px;
+  color: var(--c-gold-2); letter-spacing: 3px;
   white-space: nowrap;
+  padding-right: 4px;
 }
+.bar-right { display: flex; gap: 10px; align-items: center; }
 .chip {
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 9px;
-  border: 1.5px solid rgba(201,162,39,.5);
-  background: rgba(122,15,26,.55);
+  height: 34px; min-width: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(201,162,39,.4);
+  background: rgba(122,15,26,.4);
   color: var(--c-gold-3); font-size: 13px;
-  cursor: pointer; transition: border-color .2s, box-shadow .2s;
+  cursor: pointer; transition: border-color .2s, box-shadow .2s, background .2s;
   white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 }
-.chip:hover { border-color: var(--c-gold-2); box-shadow: 0 0 10px rgba(232,200,106,.5); }
+.chip:hover { border-color: var(--c-gold-2); box-shadow: 0 0 10px rgba(232,200,106,.4); background: rgba(122,15,26,.7); }
 /* 胶囊开关（音量 / 惩罚）—— 固定像素 */
 .pill { display: inline-flex; align-items: center; gap: 7px; }
 .pill .track {

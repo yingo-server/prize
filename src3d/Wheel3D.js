@@ -28,19 +28,28 @@ function buildNeedle() {
 function buildLamps(count) {
   const grp = new THREE.Group();
   const lamps = [];
-  const geo = new THREE.SphereGeometry(.085, 16, 12);
+  // 灯泡：玻璃壳（透光）+ 灯座（黄铜）+ 内部 PointLight（仅低密度时）
+  const bulbGeo = new THREE.SphereGeometry(.085, 16, 12);
+  const socketGeo = new THREE.CylinderGeometry(.05, .06, .1, 12);
+  const socketMat = new THREE.MeshPhysicalMaterial({ color: 0xb8912a, metalness: .9, roughness: .3 });
   for (let i = 0; i < count; i++) {
     const bright = i % 2 === 0;
     const m = new THREE.MeshStandardMaterial({
-      color: bright ? 0xfff8dc : 0x7a0f1a,
+      color: bright ? 0xfff2cc : 0x7a0f1a,
       emissive: bright ? 0xffe9a8 : 0x38060c,
-      emissiveIntensity: bright ? 2.2 : .35,
-      roughness: .3,
+      emissiveIntensity: bright ? 2.4 : .35,
+      roughness: .15,           // 玻璃光滑
+      metalness: .05,
     });
-    const lamp = new THREE.Mesh(geo, m);
+    const lamp = new THREE.Mesh(bulbGeo, m);
     const a = i / count * Math.PI * 2;
-    lamp.position.set(Math.cos(a) * 2.46, Math.sin(a) * 2.46, 0);
-    grp.add(lamp);
+    const lx = Math.cos(a) * 2.46, ly = Math.sin(a) * 2.46;
+    lamp.position.set(lx, ly, 0);
+    // 灯座（朝盘心的短圆柱）
+    const socket = new THREE.Mesh(socketGeo, socketMat);
+    socket.position.set(lx * .965, ly * .965, 0);
+    socket.rotation.z = a + Math.PI / 2;
+    grp.add(lamp, socket);
     lamps.push({ mesh: lamp, bright });
   }
   return { grp, lamps };

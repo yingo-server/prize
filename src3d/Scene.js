@@ -43,34 +43,96 @@ export function initScene(low = false) {
   envTex = pmrem.fromScene(new RoomEnvironment(), .04).texture;
   scene.environment = envTex;
 
-  // 3D 场景背景：暗红渐变雾（不用纯 CSS，场景自含）
-  scene.background = new THREE.Color(0x1a0206);
-  scene.fog = new THREE.Fog(0x1a0206, 14, 40);
-  const floor = new THREE.Mesh(
-    new THREE.CircleGeometry(30, 64),
-    new THREE.MeshStandardMaterial({ color: 0x2a0408, roughness: .85, metalness: .1 }),
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -2.6;
-  floor.receiveShadow = true;
-  scene.add(floor);
-
-  const amb = new THREE.HemisphereLight(0xffe6b0, 0x40060e, .55);
-  scene.add(amb);
-  const key = new THREE.SpotLight(0xfff2cc, lowPerf ? 120 : 260, 40, .5, .45, 1.6);
-  key.position.set(3, 12, 6);
-  key.castShadow = !lowPerf;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.bias = -.0004;
-  scene.add(key);
-  const rim = new THREE.DirectionalLight(0xe8c86a, 1.1);
-  rim.position.set(-6, 5, -8);
-  scene.add(rim);
+  buildEnvironment();
 
   onResize();
   addEventListener('resize', onResize);
   start();
   return api;
+}
+
+// ---- 抽奖亭环境（真实台面 + 体积聚光 + 灯笼氛围）----
+function buildEnvironment() {
+  // 1. 红地毯圆台（程序化绒面纹理 + 金色滚边）
+  const carpetCv = document.createElement('canvas');
+  carpetCv.width = carpetCv.height = 256;
+  const cg = carpetCv.getContext('2d');
+  cg.fillStyle = '#5c0a12'; cg.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 4200; i++) {
+    cg.fillStyle = `rgba(${Math.random() < .5 ? '120,20,30' : '40,4,8'},${Math.random() * .3})`;
+    cg.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
+  }
+  cg.strokeStyle = 'rgba(201,162,39,.8)'; cg.lineWidth = 8;
+  cg.beginPath(); cg.arc(128, 128, 118, 0, 7); cg.stroke();
+  const carpetTex = new THREE.CanvasTexture(carpetCv);
+  carpetTex.colorSpace = THREE.SRGBColorSpace;
+  const carpet = new THREE.Mesh(
+    new THREE.CircleGeometry(9, 64),
+    new THREE.MeshStandardMaterial({ map: carpetTex, roughness: .95, metalness: 0 }),
+  );
+  carpet.rotation.x = -Math.PI / 2;
+  carpet.position.y = -2.55;
+  carpet.receiveShadow = true;
+  scene.add(carpet);
+
+  // 2. 台缘（木质圆环台阶）
+  const rimStep = new THREE.Mesh(
+    new THREE.CylinderGeometry(9.2, 9.5, .22, 64),
+    new THREE.MeshStandardMaterial({ color: 0x2a1006, roughness: .7, metalness: .05 }),
+  );
+  rimStep.position.y = -2.66;
+  scene.add(rimStep);
+
+  // 3. 背景 + 雾
+  scene.background = new THREE.Color(0x150103);
+  scene.fog = new THREE.Fog(0x150103, 16, 42);
+
+  // 4. 灯光组
+  scene.add(new THREE.HemisphereLight(0xffe6b0, 0x40060e, .5));
+  const key = new THREE.SpotLight(0xfff2cc, lowPerf ? 120 : 300, 40, .42, .5, 1.6);
+  key.position.set(0, 13, 3);
+  key.castShadow = !lowPerf;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.bias = -.0004;
+  scene.add(key);
+  const rimL = new THREE.DirectionalLight(0xe8c86a, 1.0);
+  rimL.position.set(-6, 5, -8);
+  scene.add(rimL);
+  // 两侧灯笼暖光
+  const lanternL = new THREE.PointLight(0xff6a3c, lowPerf ? 0 : 26, 22, 1.8);
+  lanternL.position.set(-7.5, 3.5, -3);
+  scene.add(lanternL);
+  const lanternR = new THREE.PointLight(0xffa04c, lowPerf ? 0 : 22, 22, 1.8);
+  lanternR.position.set(7.5, 3.2, -3.5);
+  scene.add(lanternR);
+
+  // 5. 可见聚光锥（体积光近似）
+  if (!lowPerf) {
+    const cone = new THREE.Mesh(
+      new THREE.ConeGeometry(5.5, 13, 48, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: 0xfff0c8, transparent: true, opacity: .055,
+        side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending,
+      }),
+    );
+    cone.position.set(0, 6.4, 1.5);
+    cone.rotation.x = .18;
+    scene.add(cone);
+  }
+
+  // 6. 背景灯笼串（发光球阵列）
+  if (!lowPerf) {
+    const lGeo = new THREE.SphereGeometry(.32, 16, 12);
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      const lr = 12 + Math.random() * 3;
+      const m = new THREE.Mesh(lGeo, new THREE.MeshStandardMaterial({
+        color: 0xd83a20, emissive: 0xff4a20, emissiveIntensity: 1.4, roughness: .6,
+      }));
+      m.position.set(Math.cos(a) * lr, 1.5 + Math.sin(i * 2.4) * 1.6, -4 - Math.random() * 5);
+      scene.add(m);
+    }
+  }
 }
 
 function onResize() {
