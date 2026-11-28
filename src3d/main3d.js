@@ -112,7 +112,6 @@ topBar.addEventListener('click', (e) => {
     S.config.惩罚项.已启用 = S.penaltyOn;
     (S.penaltyOn ? sfx.toggleOn : sfx.toggleOff)();
     syncPills();
-    showToast(S.penaltyOn ? '惩罚项已启用' : '惩罚项已禁用 · 抽中自动重抽');
   }
 });
 
@@ -139,15 +138,33 @@ S.onModalClosed = () => {};
 // ---- 3D 组件 ----
 let wheel3d = null, wall3d = null;
 
-// 首页 3D：标题 + 双入口（DOM 层，转盘在 3D 场景中展示为背景焦点）
+// 首页 3D：标题 + 双入口（SVG 金线图标，不用 emoji）
 const homeEl = document.createElement('section');
 homeEl.className = 'home3d';
 homeEl.innerHTML = `
   <h1 class="home-title gold-text">抽奖</h1>
   <div class="home-divider"></div>
   <div class="home-btns">
-    <button class="entry3d" data-go="wheel"><span class="ico">🎡</span><span class="gold-text">幸运转盘</span></button>
-    <button class="entry3d" data-go="wall"><span class="ico">🧧</span><span class="gold-text">红包墙</span></button>
+    <button class="entry3d" data-go="wheel">
+      <svg class="entry-ico" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="17" stroke="url(#gw1)" stroke-width="3"/>
+        <circle cx="24" cy="24" r="3.5" fill="url(#gw1)"/>
+        <path d="M24 24 L24 8 M24 24 L37 30 M24 24 L11 30" stroke="url(#gw1)" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="24" cy="8" r="2.2" fill="#fff8dc"/><circle cx="37" cy="30" r="2.2" fill="#fff8dc"/><circle cx="11" cy="30" r="2.2" fill="#fff8dc"/>
+        <defs><linearGradient id="gw1" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#fff8dc"/><stop offset=".6" stop-color="#e8c86a"/><stop offset="1" stop-color="#c9a227"/></linearGradient></defs>
+      </svg>
+      <span class="entry-label gold-text">幸运转盘</span>
+    </button>
+    <button class="entry3d" data-go="wall">
+      <svg class="entry-ico" viewBox="0 0 48 48" fill="none">
+        <rect x="10" y="12" width="28" height="32" rx="4" stroke="url(#gp1)" stroke-width="3"/>
+        <path d="M10 20 Q24 26 38 20" stroke="url(#gp1)" stroke-width="3" fill="none"/>
+        <circle cx="24" cy="18" r="4" fill="#fff8dc" stroke="#c9a227" stroke-width="1.5"/>
+        <text x="24" y="21" text-anchor="middle" font-size="6" fill="#8a0e19" font-family="serif">福</text>
+        <defs><linearGradient id="gp1" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#fff8dc"/><stop offset=".6" stop-color="#e8c86a"/><stop offset="1" stop-color="#c9a227"/></linearGradient></defs>
+      </svg>
+      <span class="entry-label gold-text">红包墙</span>
+    </button>
   </div>`;
 homeEl.addEventListener('click', (e) => {
   const b = e.target.closest('[data-go]');
@@ -155,11 +172,10 @@ homeEl.addEventListener('click', (e) => {
 });
 appRoot.appendChild(homeEl);
 
-// 转盘页：3D 转盘全屏，手势拖拽甩动（无按钮——盘本身就是操作面）
+// 转盘页：3D 转盘全屏，手势拖拽甩动（无文字提示——操作自明）
 const wheelUi = document.createElement('section');
 wheelUi.className = 'wheel-ui3d';
 wheelUi.style.display = 'none';
-wheelUi.innerHTML = `<div class="drag-hint">按住盘面拖拽甩动</div>`;
 appRoot.appendChild(wheelUi);
 
 // 手动抽奖流程：转盘物理停止 → onSpinDone(idx)（Wheel3D 内部驱动）→ 结果 + 验证彩蛋

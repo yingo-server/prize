@@ -87,10 +87,10 @@
 }
 .home-btns { display: flex; gap: clamp(16px, 6vw, 96px); pointer-events: auto; margin-top: clamp(8px, 3vh, 40px); }
 .entry3d {
-  display: flex; flex-direction: column; align-items: center; gap: clamp(6px, 1.5vh, 18px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(6px, 1.5vh, 18px);
   width: clamp(150px, 24vw, 460px);
   height: clamp(72px, 17vh, 220px);
-  justify-content: center;
   border-radius: clamp(16px, 2.6vh, 28px);
   background: radial-gradient(circle at 50% 0%, #b3121f 0%, #7a0f1a 55%, #4a0810 100%);
   border: none; cursor: pointer;
@@ -98,9 +98,10 @@
   transition: transform .26s var(--ease-out), box-shadow .26s;
   outline: 2px solid rgba(201,162,39,.7);
   outline-offset: -2px;
+  overflow: hidden;
 }
-.entry3d .ico { font-size: clamp(28px, 5vh, 56px); }
-.entry3d .gold-text { font-size: clamp(18px, 3.8vh, 40px); letter-spacing: 4px; font-family: var(--f-title); }
+.entry3d .entry-ico { width: clamp(40px, 8vh, 72px); height: clamp(40px, 8vh, 72px); flex: none; }
+.entry3d .entry-label { font-size: clamp(18px, 3.8vh, 40px); letter-spacing: 4px; font-family: var(--f-title); white-space: nowrap; }
 .entry3d:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 0 calc(48 * var(--u)) rgba(232,200,106,.55), 0 calc(10 * var(--u)) calc(24 * var(--u)) rgba(0,0,0,.5); }
 .entry3d:active { transform: translateY(3px) scale(.98); }
 
