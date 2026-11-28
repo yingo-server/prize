@@ -100,8 +100,14 @@
   outline-offset: -2px;
   overflow: hidden;
 }
-.entry3d .entry-ico { width: clamp(40px, 8vh, 72px); height: clamp(40px, 8vh, 72px); flex: none; }
-.entry3d .entry-label { font-size: clamp(18px, 3.8vh, 40px); letter-spacing: 4px; font-family: var(--f-title); white-space: nowrap; }
+.entry3d .entry-ico { width: clamp(36px, 7vh, 64px); height: clamp(36px, 7vh, 64px); flex: none; }
+.entry3d .entry-label {
+  font-size: clamp(16px, 3.2vh, 34px);
+  letter-spacing: 3px; font-family: var(--f-title); white-space: nowrap;
+  /* 不用 gold-text 的 filter glow（截图合成伪影源），改纯金色+微阴影 */
+  color: #f0d98a;
+  text-shadow: 0 0 12px rgba(232,200,106,.5), 0 1px 0 #8a6a1f;
+}
 .entry3d:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 0 calc(48 * var(--u)) rgba(232,200,106,.55), 0 calc(10 * var(--u)) calc(24 * var(--u)) rgba(0,0,0,.5); }
 .entry3d:active { transform: translateY(3px) scale(.98); }
 

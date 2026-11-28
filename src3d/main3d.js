@@ -153,7 +153,7 @@ homeEl.innerHTML = `
         <circle cx="24" cy="8" r="2.2" fill="#fff8dc"/><circle cx="37" cy="30" r="2.2" fill="#fff8dc"/><circle cx="11" cy="30" r="2.2" fill="#fff8dc"/>
         <defs><linearGradient id="gw1" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#fff8dc"/><stop offset=".6" stop-color="#e8c86a"/><stop offset="1" stop-color="#c9a227"/></linearGradient></defs>
       </svg>
-      <span class="entry-label gold-text">幸运转盘</span>
+      <span class="entry-label">幸运转盘</span>
     </button>
     <button class="entry3d" data-go="wall">
       <svg class="entry-ico" viewBox="0 0 48 48" fill="none">
@@ -163,7 +163,7 @@ homeEl.innerHTML = `
         <text x="24" y="21" text-anchor="middle" font-size="6" fill="#8a0e19" font-family="serif">福</text>
         <defs><linearGradient id="gp1" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#fff8dc"/><stop offset=".6" stop-color="#e8c86a"/><stop offset="1" stop-color="#c9a227"/></linearGradient></defs>
       </svg>
-      <span class="entry-label gold-text">红包墙</span>
+      <span class="entry-label">红包墙</span>
     </button>
   </div>`;
 homeEl.addEventListener('click', (e) => {
